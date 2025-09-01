@@ -1,0 +1,102 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  
+  body {
+    @apply bg-gray-50 text-gray-900;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+      'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+      sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+@layer components {
+  .calendar-day {
+    @apply relative min-h-[100px] p-1 border border-gray-200 bg-white hover:bg-gray-50 transition-colors duration-150;
+  }
+  
+  .calendar-day.today {
+    @apply bg-blue-50 border-blue-200;
+  }
+  
+  .calendar-day.other-month {
+    @apply bg-gray-100 text-gray-400;
+  }
+  
+  .journal-entry {
+    @apply bg-white rounded-lg shadow-sm border border-gray-200 p-3 mb-2 cursor-pointer hover:shadow-md transition-shadow duration-200;
+  }
+  
+  .journal-entry:hover {
+    @apply shadow-md;
+  }
+  
+  .journal-entry-compact {
+    @apply bg-white rounded border border-gray-200 p-1;
+  }
+  
+  .swipe-card {
+    @apply fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50;
+  }
+  
+  .swipe-card-content {
+    @apply bg-white rounded-xl shadow-2xl max-w-md w-full mx-4 max-h-[80vh] overflow-hidden;
+  }
+}
+
+/* Custom scrollbar for better mobile experience */
+@layer utilities {
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* Mobile optimizations */
+@media (max-width: 640px) {
+  .calendar-day {
+    min-height: 80px;
+    padding: 0.25rem;
+  }
+  
+  .journal-entry-compact img {
+    height: 3rem; /* 48px instead of 64px */
+  }
+  
+  .journal-entry-compact .absolute {
+    top: 0.125rem;
+    left: 0.125rem;
+  }
+  
+  .journal-entry-compact .w-5 {
+    width: 1rem;
+    height: 1rem;
+  }
+}
+
+/* Tablet optimizations */
+@media (min-width: 641px) and (max-width: 1024px) {
+  .calendar-day {
+    min-height: 90px;
+    padding: 0.5rem;
+  }
+}
+
+/* Desktop optimizations */
+@media (min-width: 1025px) {
+  .calendar-day {
+    min-height: 120px;
+    padding: 0.5rem;
+  }
+}
