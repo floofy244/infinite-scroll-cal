@@ -13,7 +13,7 @@
       'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
       sans-serif;
     -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
+      -moz-osx-font-smoothing: grayscale;
   }
 }
 
@@ -47,7 +47,33 @@
   }
   
   .swipe-card-content {
-    @apply bg-white rounded-xl shadow-2xl max-w-md w-full mx-4 max-h-[80vh] overflow-hidden;
+    @apply bg-white rounded-xl shadow-2xl max-w-md w-full mx-4 overflow-hidden;
+    transition: all 0.3s ease-in-out;
+    max-height: 90vh;
+  }
+
+  /* Mobile specific sizing */
+  @media (max-width: 640px) {
+    .swipe-card-content {
+      max-height: 95vh;
+      margin: 0 0.5rem;
+    }
+  }
+
+  /* Smooth swipe animations */
+  .swipe-card-content.animate-pulse {
+    animation: swipeTransition 0.3s ease-in-out;
+  }
+
+  @keyframes swipeTransition {
+    0% {
+      opacity: 0.8;
+      transform: scale(0.95);
+    }
+    100% {
+      opacity: 1;
+      transform: scale(1);
+    }
   }
 }
 
