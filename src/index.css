@@ -19,7 +19,7 @@
 
 @layer components {
   .calendar-day {
-    @apply relative min-h-[100px] p-1 border border-gray-200 bg-white hover:bg-gray-50 transition-colors duration-150;
+    @apply relative min-h-[100px] p-1 border border-gray-200 bg-white hover:bg-gray-50 transition-colors duration-150 flex flex-col;
   }
   
   .calendar-day.today {
@@ -41,34 +41,98 @@
   .journal-entry-compact {
     @apply bg-white rounded border border-gray-200 p-1;
   }
-  
-  .swipe-card {
-    @apply fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50;
-  }
-  
-  .swipe-card-content {
-    @apply bg-white rounded-xl shadow-2xl max-w-md w-full mx-4 overflow-hidden;
-    transition: all 0.3s ease-in-out;
-    max-height: 90vh;
+
+  .full-cell-entry {
+    @apply w-full h-full flex flex-col;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
-  /* Mobile specific sizing */
+  .full-cell-entry .image-container {
+    flex: 1;
+    min-height: 50%;
+    max-height: 50%;
+  }
+  
+  .recents-swiper-overlay {
+    @apply fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+  
+  .recents-swiper-container {
+    @apply relative flex items-center justify-center w-full h-full;
+    perspective: 1000px;
+    overflow: hidden;
+  }
+
+  .recents-swiper-card {
+    @apply absolute bg-white shadow-2xl overflow-hidden;
+    width: 320px;
+    max-height: 85vh;
+    border-radius: 24px;
+    will-change: transform, opacity;
+    cursor: grab;
+    touch-action: pan-x;
+    box-shadow: 
+      0 25px 50px -12px rgba(0, 0, 0, 0.4),
+      0 0 0 1px rgba(255, 255, 255, 0.1);
+  }
+
+  .recents-swiper-card:active {
+    cursor: grabbing;
+  }
+
+  .recents-card-content {
+    @apply relative overflow-hidden;
+    border-radius: 24px;
+  }
+
   @media (max-width: 640px) {
-    .swipe-card-content {
-      max-height: 95vh;
-      margin: 0 0.5rem;
+    .recents-swiper-card {
+      width: 300px;
+      max-height: 90vh;
+      border-radius: 20px;
+    }
+    
+    .recents-card-content {
+      border-radius: 20px;
     }
   }
 
-  /* Smooth swipe animations */
-  .swipe-card-content.animate-pulse {
-    animation: swipeTransition 0.3s ease-in-out;
+  @media (min-width: 641px) and (max-width: 1024px) {
+    .recents-swiper-card {
+      width: 340px;
+    }
   }
 
-  @keyframes swipeTransition {
+  @media (min-width: 1025px) {
+    .recents-swiper-card {
+      width: 360px;
+    }
+  }
+
+  .recents-card.animate-pulse {
+    animation: recentsCardTransition 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  @keyframes recentsCardTransition {
     0% {
       opacity: 0.8;
-      transform: scale(0.95);
+      transform: scale(0.95) translateY(10px);
+    }
+    50% {
+      transform: scale(1.02) translateY(-2px);
+    }
+    100% {
+      opacity: 1;
+      transform: scale(1) translateY(0);
+    }
+  }
+
+  @keyframes fastSwipeTransition {
+    0% {
+      opacity: 0.9;
+      transform: scale(0.98);
     }
     100% {
       opacity: 1;
@@ -77,7 +141,6 @@
   }
 }
 
-/* Custom scrollbar for better mobile experience */
 @layer utilities {
   .scrollbar-hide {
     -ms-overflow-style: none;
@@ -89,29 +152,17 @@
   }
 }
 
-/* Mobile optimizations */
 @media (max-width: 640px) {
   .calendar-day {
-    min-height: 80px;
+    min-height: 110px;
     padding: 0.25rem;
   }
   
-  .journal-entry-compact img {
-    height: 3rem; /* 48px instead of 64px */
-  }
-  
-  .journal-entry-compact .absolute {
-    top: 0.125rem;
-    left: 0.125rem;
-  }
-  
-  .journal-entry-compact .w-5 {
-    width: 1rem;
-    height: 1rem;
+  .full-cell-entry {
+    padding: 0.125rem;
   }
 }
 
-/* Tablet optimizations */
 @media (min-width: 641px) and (max-width: 1024px) {
   .calendar-day {
     min-height: 90px;
@@ -119,7 +170,6 @@
   }
 }
 
-/* Desktop optimizations */
 @media (min-width: 1025px) {
   .calendar-day {
     min-height: 120px;

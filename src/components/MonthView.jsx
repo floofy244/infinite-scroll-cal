@@ -3,21 +3,18 @@ import { format, startOfMonth, endOfMonth, eachDayOfInterval, startOfWeek, endOf
 import JournalEntry from './JournalEntry'
 
 const MonthView = ({ monthDate, journalData, onEntryClick }) => {
-  // Get all days for the month view (including partial weeks)
   const monthStart = startOfMonth(monthDate)
   const monthEnd = endOfMonth(monthDate)
-  const calendarStart = startOfWeek(monthStart, { weekStartsOn: 0 }) // Start on Sunday
+  const calendarStart = startOfWeek(monthStart, { weekStartsOn: 0 })
   const calendarEnd = endOfWeek(monthEnd, { weekStartsOn: 0 })
   
   const days = eachDayOfInterval({ start: calendarStart, end: calendarEnd })
 
-  // Group days into weeks
   const weeks = []
   for (let i = 0; i < days.length; i += 7) {
     weeks.push(days.slice(i, i + 7))
   }
 
-  // Get journal entries for this month
   const getEntriesForDate = (date) => {
     return journalData.filter(entry => {
       try {
@@ -32,15 +29,13 @@ const MonthView = ({ monthDate, journalData, onEntryClick }) => {
   const weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
   return (
-    <div className="month-view">
-      {/* Month Label */}
+    <div className="month-view px-2 sm:px-0">
       <div className="text-center mb-3 sm:mb-4">
         <h3 className="text-lg sm:text-xl font-semibold text-gray-700">
           {format(monthDate, 'MMMM yyyy')}
         </h3>
       </div>
 
-      {/* Weekday Headers */}
       <div className="grid grid-cols-7 gap-0.5 sm:gap-1 mb-2">
         {weekdays.map(day => (
           <div key={day} className="text-center py-1 sm:py-2 text-xs sm:text-sm font-medium text-gray-500">
@@ -49,7 +44,6 @@ const MonthView = ({ monthDate, journalData, onEntryClick }) => {
         ))}
       </div>
 
-      {/* Calendar Grid */}
       <div className="grid grid-cols-7 gap-0.5 sm:gap-1">
         {weeks.flat().map((day, index) => {
           const isCurrentMonth = isSameMonth(day, monthDate)
@@ -63,9 +57,7 @@ const MonthView = ({ monthDate, journalData, onEntryClick }) => {
                 isCurrentDay ? 'today' : ''
               } ${
                 !isCurrentMonth ? 'other-month' : ''
-              }`}
-            >
-              {/* Day Number */}
+              }`}>
               <div className={`text-xs sm:text-sm font-medium mb-1 ${
                 isCurrentDay ? 'text-blue-600' : 
                 isCurrentMonth ? 'text-gray-900' : 'text-gray-400'
@@ -73,8 +65,7 @@ const MonthView = ({ monthDate, journalData, onEntryClick }) => {
                 {format(day, 'd')}
               </div>
 
-              {/* Journal Entries */}
-              <div className="space-y-0.5 sm:space-y-1">
+              <div className="flex-1 flex flex-col">
                 {dayEntries.slice(0, 1).map((entry, entryIndex) => (
                   <JournalEntry
                     key={`${entry.date}-${entryIndex}`}
@@ -85,7 +76,7 @@ const MonthView = ({ monthDate, journalData, onEntryClick }) => {
                   />
                 ))}
                 {dayEntries.length > 1 && (
-                  <div className="text-xs text-gray-500 text-center">
+                  <div className="text-xs text-gray-500 text-center mt-auto">
                     +{dayEntries.length - 1} more
                   </div>
                 )}

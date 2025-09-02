@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react'
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { format, addMonths, subMonths } from 'date-fns'
 import MonthView from './MonthView'
 
@@ -10,44 +10,42 @@ const InfiniteCalendar = ({ journalData, onEntryClick }) => {
   const observerRef = useRef(null)
   const monthRefs = useRef(new Map())
   const currentMonthRef = useRef(null)
+  const scrollTimeoutRef = useRef(null)
 
-  // Generate months for infinite scrolling - fix the order
   const generateMonths = useCallback((centerDate, count = 12) => {
     const months = []
     const halfCount = Math.floor(count / 2)
     
-    // Generate months in chronological order
     for (let i = -halfCount; i <= halfCount; i++) {
       const monthDate = addMonths(centerDate, i)
       months.push(monthDate)
     }
     
-    // Sort to ensure chronological order
     months.sort((a, b) => a.getTime() - b.getTime())
     return months
   }, [])
 
-  // Initialize months starting from current date
-  useEffect(() => {
+  const initialMonths = useMemo(() => {
     const now = new Date()
-    const months = generateMonths(now, 24) // Start with 24 months
-    setVisibleMonths(months)
-    setHeaderMonth(now) // Set header to current month
+    return generateMonths(now, 18)
   }, [generateMonths])
 
-  // Scroll to current month after initial render
+  useEffect(() => {
+    setVisibleMonths(initialMonths)
+    setHeaderMonth(new Date())
+  }, [initialMonths])
+
   useEffect(() => {
     if (currentMonthRef.current && scrollContainerRef.current) {
       setTimeout(() => {
         currentMonthRef.current.scrollIntoView({ 
-          behavior: 'smooth', 
+          behavior: 'auto',
           block: 'center' 
         })
-      }, 100)
+      }, 50)
     }
   }, [visibleMonths])
 
-  // Intersection Observer for month visibility
   useEffect(() => {
     if (!scrollContainerRef.current) return
 
@@ -64,8 +62,8 @@ const InfiniteCalendar = ({ journalData, onEntryClick }) => {
         })
       },
       {
-        threshold: 0.5, // Month is considered visible when 50% is in viewport
-        rootMargin: '-20% 0px -20% 0px'
+        threshold: 0.3,
+        rootMargin: '-10% 0px -10% 0px'
       }
     )
 
@@ -76,7 +74,6 @@ const InfiniteCalendar = ({ journalData, onEntryClick }) => {
     }
   }, [])
 
-  // Observe month elements
   useEffect(() => {
     if (!observerRef.current) return
 
@@ -87,41 +84,39 @@ const InfiniteCalendar = ({ journalData, onEntryClick }) => {
     })
   }, [visibleMonths])
 
-  // Handle scroll to load more months
   const handleScroll = useCallback((e) => {
     const { scrollTop, scrollHeight, clientHeight } = e.target
-    const threshold = 1000 // pixels from bottom/top to trigger loading
+    const threshold = 500
 
-    // Load more months when scrolling near the edges
-    if (scrollTop < threshold) {
-      // Scrolling up - add months to the beginning
-      const firstMonth = visibleMonths[0]
-      const newMonths = []
-      for (let i = 1; i <= 6; i++) {
-        newMonths.push(subMonths(firstMonth, i))
-      }
-      // Sort new months and add to beginning
-      newMonths.sort((a, b) => a.getTime() - b.getTime())
-      setVisibleMonths(prev => [...newMonths, ...prev])
-    } else if (scrollHeight - scrollTop - clientHeight < threshold) {
-      // Scrolling down - add months to the end
-      const lastMonth = visibleMonths[visibleMonths.length - 1]
-      const newMonths = []
-      for (let i = 1; i <= 6; i++) {
-        newMonths.push(addMonths(lastMonth, i))
-      }
-      // Sort new months and add to end
-      newMonths.sort((a, b) => a.getTime() - b.getTime())
-      setVisibleMonths(prev => [...prev, ...newMonths])
+    if (scrollTimeoutRef.current) {
+      clearTimeout(scrollTimeoutRef.current)
     }
+
+    scrollTimeoutRef.current = setTimeout(() => {
+      if (scrollTop < threshold) {
+        const firstMonth = visibleMonths[0]
+        const newMonths = []
+        for (let i = 1; i <= 4; i++) {
+          newMonths.push(subMonths(firstMonth, i))
+        }
+        newMonths.sort((a, b) => a.getTime() - b.getTime())
+        setVisibleMonths(prev => [...newMonths, ...prev])
+      } else if (scrollHeight - scrollTop - clientHeight < threshold) {
+        const lastMonth = visibleMonths[visibleMonths.length - 1]
+        const newMonths = []
+        for (let i = 1; i <= 4; i++) {
+          newMonths.push(addMonths(lastMonth, i))
+        }
+        newMonths.sort((a, b) => a.getTime() - b.getTime())
+        setVisibleMonths(prev => [...prev, ...newMonths])
+      }
+    }, 50)
   }, [visibleMonths])
 
-  // Set month ref for intersection observer
   const setMonthRef = useCallback((monthDate, element) => {
     if (element) {
       monthRefs.current.set(monthDate.toISOString(), element)
       
-      // Set current month ref for scrolling
       const now = new Date()
       if (monthDate.getMonth() === now.getMonth() && monthDate.getFullYear() === now.getFullYear()) {
         currentMonthRef.current = element
@@ -129,22 +124,28 @@ const InfiniteCalendar = ({ journalData, onEntryClick }) => {
     }
   }, [])
 
-  // Scroll to current month function
   const scrollToCurrentMonth = useCallback(() => {
     if (currentMonthRef.current && scrollContainerRef.current) {
       currentMonthRef.current.scrollIntoView({ 
-        behavior: 'smooth', 
+        behavior: 'auto',
         block: 'center' 
       })
     }
   }, [])
 
+  useEffect(() => {
+    return () => {
+      if (scrollTimeoutRef.current) {
+        clearTimeout(scrollTimeoutRef.current)
+      }
+    }
+  }, [])
+
   return (
     <div className="relative">
-      {/* Dynamic Month Header */}
       <div className="sticky top-16 sm:top-20 z-30 bg-white/95 backdrop-blur-sm border-b border-gray-200 py-3 sm:py-4 mb-4 sm:mb-6">
         <div className="text-center">
-          <h2 className="text-xl sm:text-3xl font-bold text-gray-900 transition-all duration-300">
+          <h2 className="text-xl sm:text-3xl font-bold text-gray-900 transition-all duration-200">
             {format(headerMonth, 'MMMM yyyy')}
           </h2>
           <button 
@@ -156,7 +157,6 @@ const InfiniteCalendar = ({ journalData, onEntryClick }) => {
         </div>
       </div>
 
-      {/* Calendar Container */}
       <div 
         ref={scrollContainerRef}
         className="calendar-container overflow-y-auto max-h-[65vh] sm:max-h-[70vh] scrollbar-hide"

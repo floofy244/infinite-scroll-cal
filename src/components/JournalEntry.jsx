@@ -1,55 +1,98 @@
 import React from 'react'
 
 const JournalEntry = ({ entry, onClick, compact = false, dayNumber }) => {
+  const getCategoryEmoji = (category) => {
+    const categoryMap = {
+      'Deep Conditioning': '💧',
+      'Moisture': '💦',
+      'Hair Growth': '🌱',
+      'Natural Products': '🌿',
+      'Protein Treatment': '💪',
+      'Hair Repair': '🔧',
+      'Salon Visit': '💇‍♀️',
+      'Protective Style': '🛡️',
+      'Braids': '🪢',
+      'Scalp Care': '🧴',
+      'Wash Day': '🧼',
+      'Detangling': '🪮',
+      'Leave-in Conditioner': '💦',
+      'Hair Oil': '🫒',
+      'Scalp Massage': '💆‍♀️',
+      'Growth': '📈',
+      'Trimming': '✂️',
+      'Split Ends': '💔',
+      'Maintenance': '🔄',
+      'Protein': '🥚',
+      'Balance': '⚖️',
+      'Twists': '🌀',
+      'Low Manipulation': '👐',
+      'Clarifying': '✨',
+      'Build-up': '🧽',
+      'Hair Mask': '🎭',
+      'Overnight Treatment': '🌙',
+      'Deep Care': '❤️',
+      'Styling': '💅',
+      'Flexi Rods': '🪃',
+      'Curl Definition': '〰️',
+      'Exfoliation': '🧂',
+      'Health': '🌟',
+      'Vitamins': '💊',
+      'Nutrition': '🥗',
+      'Cornrows': '📏',
+      'Hair Care': '💝',
+      'Routine': '📅',
+      'Consistency': '✅',
+      'Product Review': '📝',
+      'New Brand': '🆕',
+      'Testing': '🧪',
+      'Hair Length': '📐',
+      'Progress': '📊',
+      'Goals': '🎯',
+      'Seasonal Care': '🍂',
+      'Winter': '❄️',
+      'Protection': '🛡️',
+      'Hair Accessories': '🎀',
+      'Fun': '🎉',
+      'Hair Health': '💚',
+      'Overall': '🌈',
+      'Achievement': '🏆'
+    }
+    return categoryMap[category] || '✨'
+  }
+
   if (compact) {
     return (
       <div 
-        className="journal-entry-compact cursor-pointer hover:shadow-sm transition-all duration-150"
+        className="full-cell-entry cursor-pointer hover:bg-gray-50 transition-all duration-200"
         onClick={onClick}
       >
-        {/* Rating stars overlaid on image */}
-        <div className="relative mb-1">
+        <div className="flex items-center justify-center space-x-0.5 mb-1">
+          {[...Array(5)].map((_, i) => (
+            <span 
+              key={i} 
+              className={`text-xs leading-none ${i < Math.floor(entry.rating) ? 'text-blue-500' : 'text-gray-300'}`}>
+              ★
+            </span>
+          ))}
+        </div>
+        
+        <div className="image-container flex-1 mb-1">
           <img 
             src={entry.imgUrl} 
             alt="Journal entry"
-            className="w-full h-12 sm:h-16 object-cover rounded"
+            className="w-full h-full object-cover rounded-lg"
             onError={(e) => {
               e.target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDgiIGhlaWdodD0iNDgiIHZpZXdCb3g9IjAgMCA0OCA0OCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjQ4IiBoZWlnaHQ9IjQ4IiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0yNCAyOEMyNi4yMDkxIDI4IDI4IDI2LjIwOTEgMjggMjRDMjggMjEuNzkwOSAyNi4yMDkxIDIwIDI0IDIwQzIxLjc5MDkgMjAgMjAgMjEuNzkwOSAyMCAyNEMyMCAyNi4yMDkxIDIxLjc5MDkgMjggMjQgMjhaIiBmaWxsPSIjOUI5QkEwIi8+CjxwYXRoIGQ9Ik0xMiA0MEgzNkM0MC40MTgyIDQwIDQ0IDM2LjQxODIgNDQgMzJWMThDNDQgMTMuNTgxOCA0MC40MTgyIDEwIDM2IDEwSDEyQzcuNTgxNzIgMTAgNCAxMy41ODE4IDQgMThWMzJDNCAzNi40MTgyIDcuNTgxNzIgNDAgMTIgNDBaIiBzdHJva2U9IiM5QjlCQTAiIHN0cm9rZS13aWR0aD0iMiIvPgo8L3N2Zz4K'
             }}
           />
-          {/* Stars overlaid on top of image */}
-          <div className="absolute top-0.5 left-0.5 sm:top-1 sm:left-1 flex items-center space-x-0.5">
-            {[...Array(5)].map((_, i) => (
-              <span 
-                key={i} 
-                className={`text-xs ${i < Math.floor(entry.rating) ? 'text-blue-400' : 'text-gray-300'}`}
-              >
-                ★
-              </span>
-            ))}
-          </div>
         </div>
         
-        {/* Categories/badges */}
-        <div className="flex justify-center space-x-0.5 sm:space-x-1 mb-1">
-          {entry.categories.slice(0, 2).map((category, index) => {
-            const colors = ['bg-purple-500', 'bg-pink-500', 'bg-blue-500', 'bg-green-500']
-            const color = colors[index % colors.length]
-            return (
-              <span 
-                key={index}
-                className="w-4 h-4 sm:w-5 sm:h-5 rounded-full text-white text-xs flex items-center justify-center font-bold"
-                style={{ backgroundColor: index === 0 ? '#8b5cf6' : '#ec4899' }}
-              >
-                {category.charAt(0).toUpperCase()}
-              </span>
-            )
-          })}
-        </div>
-        
-        {/* Entry count at bottom */}
-        <div className="text-center text-xs text-gray-700">
-          {entry.rating}
+        <div className="flex justify-center space-x-1">
+          {entry.categories.slice(0, 2).map((category, index) => (
+            <span key={index} className="text-base" title={category}>
+              {getCategoryEmoji(category)}
+            </span>
+          ))}
         </div>
       </div>
     )

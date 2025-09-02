@@ -1,214 +1,309 @@
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef, useCallback } from 'react'
 import { parse, format } from 'date-fns'
 
 const JournalCard = ({ entry, onClose, journalData }) => {
-  const [currentEntry, setCurrentEntry] = useState(entry)
+  const getCategoryEmoji = (category) => {
+    const categoryMap = {
+      'Deep Conditioning': '💧',
+      'Moisture': '💦',
+      'Hair Growth': '🌱',
+      'Natural Products': '🌿',
+      'Protein Treatment': '💪',
+      'Hair Repair': '🔧',
+      'Salon Visit': '💇‍♀️',
+      'Protective Style': '🛡️',
+      'Braids': '🪢',
+      'Scalp Care': '🧴',
+      'Wash Day': '🧼',
+      'Detangling': '🪮',
+      'Leave-in Conditioner': '💦',
+      'Hair Oil': '🫒',
+      'Scalp Massage': '💆‍♀️',
+      'Growth': '📈',
+      'Trimming': '✂️',
+      'Split Ends': '💔',
+      'Maintenance': '🔄',
+      'Protein': '🥚',
+      'Balance': '⚖️',
+      'Twists': '🌀',
+      'Low Manipulation': '👐',
+      'Clarifying': '✨',
+      'Build-up': '🧽',
+      'Hair Mask': '🎭',
+      'Overnight Treatment': '🌙',
+      'Deep Care': '❤️',
+      'Styling': '💅',
+      'Flexi Rods': '🪃',
+      'Curl Definition': '〰️',
+      'Exfoliation': '🧂',
+      'Health': '🌟',
+      'Vitamins': '💊',
+      'Nutrition': '🥗',
+      'Cornrows': '📏',
+      'Hair Care': '💝',
+      'Routine': '📅',
+      'Consistency': '✅',
+      'Product Review': '📝',
+      'New Brand': '🆕',
+      'Testing': '🧪',
+      'Hair Length': '📐',
+      'Progress': '📊',
+      'Goals': '🎯',
+      'Seasonal Care': '🍂',
+      'Winter': '❄️',
+      'Protection': '🛡️',
+      'Hair Accessories': '🎀',
+      'Fun': '🎉',
+      'Hair Health': '💚',
+      'Overall': '🌈',
+      'Achievement': '🏆'
+    }
+    return categoryMap[category] || '✨'
+  }
   const [currentIndex, setCurrentIndex] = useState(0)
-  const [touchStart, setTouchStart] = useState(null)
-  const [touchEnd, setTouchEnd] = useState(null)
+  const [dragOffset, setDragOffset] = useState(0)
+  const [isDragging, setIsDragging] = useState(false)
   const [isAnimating, setIsAnimating] = useState(false)
-  const cardRef = useRef(null)
+  const containerRef = useRef(null)
+  const touchStartRef = useRef(null)
+  const lastTouchRef = useRef(null)
 
-  // Find current entry index
   useEffect(() => {
     const index = journalData.findIndex(item => item.date === entry.date)
     setCurrentIndex(index >= 0 ? index : 0)
-    setCurrentEntry(entry)
   }, [entry, journalData])
 
-  // Swipe threshold
-  const minSwipeDistance = 50
+  const getVisibleCards = useCallback(() => {
+    const cards = []
+    for (let i = -1; i <= 1; i++) {
+      const index = currentIndex + i
+      if (index >= 0 && index < journalData.length) {
+        cards.push({
+          index,
+          entry: journalData[index],
+          offset: i
+        })
+      }
+    }
+    return cards
+  }, [currentIndex, journalData])
 
-  const onTouchStart = (e) => {
-    setTouchEnd(null)
-    setTouchStart(e.targetTouches[0].clientX)
-  }
-
-  const onTouchMove = (e) => {
-    setTouchEnd(e.targetTouches[0].clientX)
-  }
-
-  const onTouchEnd = () => {
-    if (!touchStart || !touchEnd) return
+  const handleStart = useCallback((e) => {
+    if (isAnimating) return
     
-    const distance = touchStart - touchEnd
-    const isLeftSwipe = distance > minSwipeDistance
-    const isRightSwipe = distance < -minSwipeDistance
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX
+    touchStartRef.current = clientX
+    lastTouchRef.current = clientX
+    setIsDragging(true)
+    setDragOffset(0)
+  }, [isAnimating])
 
-    if (isLeftSwipe) {
-      // Swipe left - go to next entry
-      goToNext()
-    } else if (isRightSwipe) {
-      // Swipe right - go to previous entry
-      goToPrevious()
+  const handleMove = useCallback((e) => {
+    if (!isDragging || !touchStartRef.current) return
+    
+    e.preventDefault()
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX
+    const diff = clientX - touchStartRef.current
+    
+    const maxDrag = 300
+    const limitedDiff = Math.max(-maxDrag, Math.min(maxDrag, diff))
+    
+    setDragOffset(limitedDiff)
+    lastTouchRef.current = clientX
+  }, [isDragging])
+
+  const handleEnd = useCallback(() => {
+    if (!isDragging) return
+    
+    setIsDragging(false)
+    
+    const threshold = 80
+    
+    if (Math.abs(dragOffset) > threshold) {
+      if (dragOffset > 0 && currentIndex > 0) {
+        setIsAnimating(true)
+        setCurrentIndex(prev => prev - 1)
+      } else if (dragOffset < 0 && currentIndex < journalData.length - 1) {
+        setIsAnimating(true)
+        setCurrentIndex(prev => prev + 1)
+      }
     }
-  }
+    
+    setDragOffset(0)
+    setTimeout(() => setIsAnimating(false), 300)
+  }, [isDragging, dragOffset, currentIndex, journalData.length])
 
-  const goToNext = () => {
-    if (currentIndex < journalData.length - 1 && !isAnimating) {
+  useEffect(() => {
+    const container = containerRef.current
+    if (!container) return
+
+    const handleMouseMove = (e) => handleMove(e)
+    const handleMouseUp = () => handleEnd()
+
+    if (isDragging) {
+      document.addEventListener('mousemove', handleMouseMove)
+      document.addEventListener('mouseup', handleMouseUp)
+    }
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove)
+      document.removeEventListener('mouseup', handleMouseUp)
+    }
+  }, [isDragging, handleMove, handleEnd])
+
+  const handleKeyDown = useCallback((e) => {
+    if (isAnimating) return
+    
+    if (e.key === 'ArrowLeft' && currentIndex < journalData.length - 1) {
       setIsAnimating(true)
-      const nextIndex = currentIndex + 1
-      setCurrentIndex(nextIndex)
-      setCurrentEntry(journalData[nextIndex])
+      setCurrentIndex(prev => prev + 1)
       setTimeout(() => setIsAnimating(false), 300)
-    }
-  }
-
-  const goToPrevious = () => {
-    if (currentIndex > 0 && !isAnimating) {
+    } else if (e.key === 'ArrowRight' && currentIndex > 0) {
       setIsAnimating(true)
-      const prevIndex = currentIndex - 1
-      setCurrentEntry(journalData[prevIndex])
+      setCurrentIndex(prev => prev - 1)
       setTimeout(() => setIsAnimating(false), 300)
-    }
-  }
-
-  const handleKeyDown = (e) => {
-    if (e.key === 'ArrowLeft') {
-      goToNext()
-    } else if (e.key === 'ArrowRight') {
-      goToPrevious()
     } else if (e.key === 'Escape') {
       onClose()
     }
-  }
+  }, [currentIndex, journalData.length, isAnimating, onClose])
 
   useEffect(() => {
     document.addEventListener('keydown', handleKeyDown)
     return () => document.removeEventListener('keydown', handleKeyDown)
-  }, [currentIndex])
+  }, [handleKeyDown])
 
-  const formatDate = (dateString) => {
+  const formatDate = useCallback((dateString) => {
     try {
       const date = parse(dateString, 'dd/MM/yyyy', new Date())
       return format(date, 'EEEE, MMMM do, yyyy')
     } catch (error) {
       return dateString
     }
-  }
+  }, [])
+
+  const currentEntry = journalData[currentIndex]
 
   return (
     <div 
-      className="swipe-card"
+      className="recents-swiper-overlay"
       onClick={onClose}
     >
-      <div 
-        ref={cardRef}
-        className={`swipe-card-content ${isAnimating ? 'animate-pulse' : ''}`}
-        onClick={(e) => e.stopPropagation()}
-        onTouchStart={onTouchStart}
-        onTouchMove={onTouchMove}
-        onTouchEnd={onTouchEnd}
+      <button
+        onClick={onClose}
+        className="absolute top-6 right-6 z-50 w-10 h-10 bg-black bg-opacity-30 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-opacity-50 transition-all duration-200"
       >
-        {/* Close Button */}
-        <button
-          onClick={onClose}
-          className="absolute top-2 right-2 md:top-4 md:right-4 z-50 w-8 h-8 bg-black bg-opacity-50 rounded-full flex items-center justify-center text-white hover:bg-opacity-70 transition-all duration-200"
-        >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </button>
+        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
 
-        {/* Main Image - 60% of card height, smaller on mobile */}
-        <div className="relative h-48 md:h-96 bg-gray-100">
-          <img 
-            src={currentEntry.imgUrl} 
-            alt="Journal entry"
-            className="w-full h-full object-cover"
-            onError={(e) => {
-              e.target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDgiIGhlaWdodD0iNDgiIHZpZXdCb3g9IjAgMCA0OCA0OCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjQ4IiBoZWlnaHQ9IjQ4IiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0yNCAyOEMyNi4yMDkxIDI4IDI4IDI2LjIwOTEgMjggMjRDMjggMjEuNzkwOSAyNi4yMDkxIDIwIDI0IDIwQzIxLjc5MDkgMjAgMjAgMjEuNzkwOSAyMCAyNEMyMCAyNi4yMDkxIDIxLjc5MDkgMjggMjQgMjhaIiBmaWxsPSIjOUI5QkEwIi8+CjxwYXRoIGQ9Ik0xMiA0MEgzNkM0MC40MTgyIDQwIDQ0IDM2LjQxODIgNDQgMzJWMThDNDQgMTMuNTgxOCA0MC40MTgyIDEwIDM2IDEwSDEyQzcuNTgxNzIgMTAgNCAxMy41ODE4IDQgMThWMzJDNCAzNi40MTgyIDcuNTgxNzIgNDAgMTIgNDBaIiBzdHJva2U9IiM5QjlCQTAiIHN0cm9rZS13aWR0aD0iMiIvPgo8L3N2Zz4K'
-            }}
-          />
-        </div>
+      <div 
+        ref={containerRef}
+        className="recents-swiper-container"
+        onClick={(e) => e.stopPropagation()}
+        onTouchStart={handleStart}
+        onTouchMove={handleMove}
+        onTouchEnd={handleEnd}
+        onMouseDown={handleStart}
+      >
+        {getVisibleCards().map(({ index, entry, offset }) => {
+          const baseTransform = offset * 340 + dragOffset
+          const scale = offset === 0 ? 1 : 0.9
+          const opacity = offset === 0 ? 1 : 0.7
+          const zIndex = offset === 0 ? 10 : 5 - Math.abs(offset)
 
-        {/* Content Section */}
-        <div className="p-3 md:p-6">
-          {/* Tags and Stars Row */}
-          <div className="flex items-center justify-between mb-3 md:mb-4">
-            {/* Tags on the left */}
-            <div className="flex flex-wrap gap-1 md:gap-2 flex-1 mr-2 md:mr-4">
-              {currentEntry.categories.slice(0, 3).map((category, index) => (
-                <span 
-                  key={index}
-                  className="px-2 md:px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs md:text-sm font-medium"
-                >
-                  {category}
-                </span>
-              ))}
-              {currentEntry.categories.length > 3 && (
-                <span className="px-2 md:px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-xs md:text-sm">
-                  +{currentEntry.categories.length - 3}
-                </span>
-              )}
+          return (
+            <div
+              key={index}
+              className={`recents-swiper-card ${isDragging ? '' : 'transition-transform'}`}
+              style={{
+                transform: `translateX(${baseTransform}px) scale(${scale})`,
+                opacity,
+                zIndex,
+                transition: isDragging ? 'none' : 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
+              }}
+            >
+              <div className="recents-card-content">
+                <div className="relative h-64 bg-gradient-to-br from-gray-100 to-gray-200 rounded-t-3xl overflow-hidden">
+                  <img 
+                    src={entry.imgUrl} 
+                    alt="Journal entry"
+                    className="w-full h-full object-cover"
+                    loading="lazy"
+                    onError={(e) => {
+                      e.target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDgiIGhlaWdodD0iNDgiIHZpZXdCb3g9IjAgMCA0OCA0OCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjQ4IiBoZWlnaHQ9IjQ4IiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0yNCAyOEMyNi4yMDkxIDI4IDI4IDI2LjIwOTEgMjggMjRDMjggMjEuNzkwOSAyNi4yMDkxIDIwIDI0IDIwQzIxLjc5MDkgMjAgMjAgMjEuNzkwOSAyMCAyNEMyMCAyNi4yMDkxIDIxLjc5MDkgMjggMjQgMjhaIiBmaWxsPSIjOUI5QkEwIi8+CjxwYXRoIGQ9Ik0xMiA0MEgzNkM0MC40MTgyIDQwIDQ0IDM2LjQxODIgNDQgMzJWMThDNDQgMTMuNTgxOCA0MC40MTgyIDEwIDM2IDEwSDEyQzcuNTgxNzIgMTAgNCAxMy41ODE4IDQgMThWMzJDNCAzNi40MTgyIDcuNTgxNzIgNDAgMTIgNDBaIiBzdHJva2U9IiM5QjlCQTAiIHN0cm9rZS13aWR0aD0iMiIvPgo8L3N2Zz4K'
+                    }}
+                  />
+                  
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent" />
+                </div>
+
+                <div className="p-6 space-y-4">
+                  <div className="flex flex-wrap gap-2">
+                    {entry.categories.slice(0, 3).map((category, catIndex) => (
+                      <span 
+                        key={catIndex}
+                        className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 text-blue-700 rounded-full text-sm font-medium border border-blue-100"
+                      >
+                        <span className="text-base">{getCategoryEmoji(category)}</span>
+                        {category}
+                      </span>
+                    ))}
+                    {entry.categories.length > 3 && (
+                      <span className="px-3 py-1.5 bg-gray-50 text-gray-600 rounded-full text-sm border border-gray-100">
+                        +{entry.categories.length - 3}
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <div className="text-lg font-semibold text-gray-900">
+                      {formatDate(entry.date)}
+                    </div>
+                    <div className="flex items-center space-x-1">
+                      {[...Array(5)].map((_, i) => (
+                        <span 
+                          key={i} 
+                          className={`text-lg ${i < Math.floor(entry.rating) ? 'text-blue-500' : 'text-gray-300'}`}>
+                          ★
+                        </span>
+                      ))}
+                      <span className="ml-2 text-lg font-semibold text-gray-700">
+                        {entry.rating}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div>
+                    <p className="text-gray-700 leading-relaxed text-base">
+                      {entry.description}
+                    </p>
+                  </div>
+
+                  <div className="pt-2">
+                    <button className="w-full bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-semibold py-3 px-6 rounded-2xl transition-all duration-200 shadow-lg hover:shadow-xl active:scale-[0.98]">
+                      View full Post
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
-            
-            {/* Stars on the right */}
-            <div className="flex items-center space-x-1 flex-shrink-0">
-              {[...Array(5)].map((_, i) => (
-                <span 
-                  key={i} 
-                  className={`text-lg md:text-xl ${i < Math.floor(currentEntry.rating) ? 'text-yellow-500' : 'text-gray-300'}`}
-                >
-                  ★
-                </span>
-              ))}
-              <span className="ml-2 text-base md:text-lg font-semibold text-gray-700">
-                {currentEntry.rating}
-              </span>
-            </div>
-          </div>
+          )
+        })}
+      </div>
 
-          {/* Date */}
-          <div className="mb-3 md:mb-4">
-            <div className="text-base md:text-lg font-semibold text-gray-900">
-              {formatDate(currentEntry.date)}
-            </div>
-          </div>
+      <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 flex items-center space-x-2">
+        {journalData.map((_, index) => (
+          <div 
+            key={index}
+            className={`w-2 h-2 rounded-full transition-all duration-200 ${
+              index === currentIndex ? 'bg-white w-6' : 'bg-white/50'
+            }`} />
+        ))}
+      </div>
 
-          {/* Journal Entry Details */}
-          <div className="mb-4 md:mb-6">
-            <h3 className="text-base md:text-lg font-semibold text-gray-900 mb-2 md:mb-3">Journal Entry</h3>
-            <p className="text-sm md:text-base text-gray-700 leading-relaxed">
-              {currentEntry.description}
-            </p>
-          </div>
-
-          {/* View Full Post Button */}
-          <div className="text-center">
-            <button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 md:py-3 px-4 md:px-6 rounded-lg transition-colors duration-200 shadow-lg hover:shadow-xl text-sm md:text-base">
-              View Full Post
-            </button>
-          </div>
-
-          {/* Navigation Indicators */}
-          <div className="flex items-center justify-center mt-4 md:mt-6 space-x-2">
-            <button
-              onClick={goToPrevious}
-              disabled={currentIndex === 0}
-              className={`w-3 h-3 rounded-full transition-all duration-200 ${
-                currentIndex === 0 ? 'bg-gray-300' : 'bg-blue-600 hover:bg-blue-700'
-              }`}
-            />
-            <div className={`w-3 h-3 rounded-full bg-blue-600`} />
-            <button
-              onClick={goToNext}
-              disabled={currentIndex === journalData.length - 1}
-              className={`w-3 h-3 rounded-full transition-all duration-200 ${
-                currentIndex === journalData.length - 1 ? 'bg-gray-300' : 'bg-blue-600 hover:bg-blue-700'
-              }`}
-            />
-          </div>
-        </div>
-
-        {/* Swipe Instructions */}
-        <div className="bg-gray-50 px-3 md:px-6 py-2 md:py-3 text-center text-xs md:text-sm text-gray-500">
-          <div className="flex items-center justify-center space-x-2 md:space-x-4">
-            <span>← Swipe left for next</span>
-            <span>•</span>
-            <span>Swipe right for previous →</span>
-          </div>
-        </div>
+      <div className="absolute bottom-20 left-1/2 transform -translate-x-1/2 text-white/80 text-sm text-center">
+        Swipe left or right to navigate
       </div>
     </div>
   )
