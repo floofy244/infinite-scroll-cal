@@ -207,9 +207,9 @@ const JournalCard = ({ entry, onClose, journalData }) => {
         onMouseDown={handleStart}
       >
         {getVisibleCards().map(({ index, entry, offset }) => {
-          const baseTransform = offset * 340 + dragOffset
-          const scale = offset === 0 ? 1 : 0.9
-          const opacity = offset === 0 ? 1 : 0.7
+          const baseTransform = offset * 320 + dragOffset
+          const scale = offset === 0 ? 1 : 0.85
+          const opacity = offset === 0 ? 1 : 0.6
           const zIndex = offset === 0 ? 10 : 5 - Math.abs(offset)
 
           return (
@@ -224,7 +224,7 @@ const JournalCard = ({ entry, onClose, journalData }) => {
               }}
             >
               <div className="recents-card-content">
-                <div className="relative h-64 bg-gradient-to-br from-gray-100 to-gray-200 rounded-t-3xl overflow-hidden">
+                <div className="relative h-48 sm:h-64 bg-gradient-to-br from-gray-100 to-gray-200 rounded-t-3xl overflow-hidden">
                   <img 
                     src={entry.imgUrl} 
                     alt="Journal entry"
@@ -238,50 +238,50 @@ const JournalCard = ({ entry, onClose, journalData }) => {
                   <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent" />
                 </div>
 
-                <div className="p-6 space-y-4">
-                  <div className="flex flex-wrap gap-2">
-                    {entry.categories.slice(0, 3).map((category, catIndex) => (
+                <div className="p-4 sm:p-6 space-y-3 sm:space-y-4">
+                  <div className="flex flex-wrap gap-1.5 sm:gap-2">
+                    {entry.categories.slice(0, 2).map((category, catIndex) => (
                       <span 
                         key={catIndex}
-                        className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 text-blue-700 rounded-full text-sm font-medium border border-blue-100"
+                        className="flex items-center gap-1 px-2 py-1 sm:px-3 sm:py-1.5 bg-blue-50 text-blue-700 rounded-full text-xs sm:text-sm font-medium border border-blue-100"
                       >
-                        <span className="text-base">{getCategoryEmoji(category)}</span>
-                        {category}
+                        <span className="text-sm sm:text-base">{getCategoryEmoji(category)}</span>
+                        <span className="hidden sm:inline">{category}</span>
                       </span>
                     ))}
-                    {entry.categories.length > 3 && (
-                      <span className="px-3 py-1.5 bg-gray-50 text-gray-600 rounded-full text-sm border border-gray-100">
-                        +{entry.categories.length - 3}
+                    {entry.categories.length > 2 && (
+                      <span className="px-2 py-1 sm:px-3 sm:py-1.5 bg-gray-50 text-gray-600 rounded-full text-xs sm:text-sm border border-gray-100">
+                        +{entry.categories.length - 2}
                       </span>
                     )}
                   </div>
 
                   <div className="flex items-center justify-between">
-                    <div className="text-lg font-semibold text-gray-900">
+                    <div className="text-base sm:text-lg font-semibold text-gray-900">
                       {formatDate(entry.date)}
                     </div>
-                    <div className="flex items-center space-x-1">
+                    <div className="flex items-center space-x-0.5 sm:space-x-1">
                       {[...Array(5)].map((_, i) => (
                         <span 
                           key={i} 
-                          className={`text-lg ${i < Math.floor(entry.rating) ? 'text-blue-500' : 'text-gray-300'}`}>
+                          className={`text-sm sm:text-lg ${i < Math.floor(entry.rating) ? 'text-blue-500' : 'text-gray-300'}`}>
                           ★
                         </span>
                       ))}
-                      <span className="ml-2 text-lg font-semibold text-gray-700">
+                      <span className="ml-1 sm:ml-2 text-sm sm:text-lg font-semibold text-gray-700">
                         {entry.rating}
                       </span>
                     </div>
                   </div>
 
                   <div>
-                    <p className="text-gray-700 leading-relaxed text-base">
+                    <p className="text-gray-700 leading-relaxed text-sm sm:text-base">
                       {entry.description}
                     </p>
                   </div>
 
-                  <div className="pt-2">
-                    <button className="w-full bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-semibold py-3 px-6 rounded-2xl transition-all duration-200 shadow-lg hover:shadow-xl active:scale-[0.98]">
+                  <div className="pt-1 sm:pt-2">
+                    <button className="w-full bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-semibold py-2.5 sm:py-3 px-4 sm:px-6 rounded-2xl transition-all duration-200 shadow-lg hover:shadow-xl active:scale-[0.98] text-sm sm:text-base">
                       View full Post
                     </button>
                   </div>
@@ -292,18 +292,18 @@ const JournalCard = ({ entry, onClose, journalData }) => {
         })}
       </div>
 
-      <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 flex items-center space-x-2">
+      <div className="absolute bottom-6 sm:bottom-8 left-1/2 transform -translate-x-1/2 flex items-center space-x-1.5 sm:space-x-2">
         {journalData.map((_, index) => (
           <div 
             key={index}
-            className={`w-2 h-2 rounded-full transition-all duration-200 ${
-              index === currentIndex ? 'bg-white w-6' : 'bg-white/50'
+            className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full transition-all duration-200 ${
+              index === currentIndex ? 'bg-white w-4 sm:w-6' : 'bg-white/50'
             }`} />
         ))}
       </div>
 
-      <div className="absolute bottom-20 left-1/2 transform -translate-x-1/2 text-white/80 text-sm text-center">
-        Swipe left or right to navigate
+      <div className="absolute bottom-16 sm:bottom-20 left-1/2 transform -translate-x-1/2 text-white/80 text-xs sm:text-sm text-center">
+        Swipe to navigate
       </div>
     </div>
   )

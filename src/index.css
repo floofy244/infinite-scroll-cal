@@ -89,13 +89,17 @@
 
   @media (max-width: 640px) {
     .recents-swiper-card {
-      width: 300px;
-      max-height: 90vh;
-      border-radius: 20px;
+      width: 280px;
+      max-height: 85vh;
+      border-radius: 16px;
     }
     
     .recents-card-content {
-      border-radius: 20px;
+      border-radius: 16px;
+    }
+    
+    .recents-swiper-overlay {
+      padding: 1rem;
     }
   }
 
@@ -154,12 +158,39 @@
 
 @media (max-width: 640px) {
   .calendar-day {
-    min-height: 110px;
-    padding: 0.25rem;
+    min-height: 100px;
+    padding: 0.125rem;
   }
   
   .full-cell-entry {
     padding: 0.125rem;
+    min-height: 85px;
+  }
+  
+  .full-cell-entry .image-container {
+    min-height: 40px;
+    max-height: 45px;
+  }
+}
+
+@media (max-width: 375px) {
+  .recents-swiper-card {
+    width: 260px !important;
+    max-height: 80vh;
+  }
+  
+  .calendar-day {
+    min-height: 95px;
+    padding: 0.1rem;
+  }
+  
+  .full-cell-entry {
+    min-height: 80px;
+  }
+  
+  .full-cell-entry .image-container {
+    min-height: 35px;
+    max-height: 40px;
   }
 }
 

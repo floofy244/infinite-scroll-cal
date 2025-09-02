@@ -66,7 +66,7 @@ const JournalEntry = ({ entry, onClick, compact = false, dayNumber }) => {
         className="full-cell-entry cursor-pointer hover:bg-gray-50 transition-all duration-200"
         onClick={onClick}
       >
-        <div className="flex items-center justify-center space-x-0.5 mb-1">
+        <div className="flex items-center justify-center space-x-0.5 mb-1 px-1">
           {[...Array(5)].map((_, i) => (
             <span 
               key={i} 
@@ -76,20 +76,20 @@ const JournalEntry = ({ entry, onClick, compact = false, dayNumber }) => {
           ))}
         </div>
         
-        <div className="image-container flex-1 mb-1">
+        <div className="image-container flex-1 mb-1 px-1">
           <img 
             src={entry.imgUrl} 
             alt="Journal entry"
-            className="w-full h-full object-cover rounded-lg"
+            className="w-full h-full object-cover rounded-md"
             onError={(e) => {
               e.target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDgiIGhlaWdodD0iNDgiIHZpZXdCb3g9IjAgMCA0OCA0OCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjQ4IiBoZWlnaHQ9IjQ4IiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0yNCAyOEMyNi4yMDkxIDI4IDI4IDI2LjIwOTEgMjggMjRDMjggMjEuNzkwOSAyNi4yMDkxIDIwIDI0IDIwQzIxLjc5MDkgMjAgMjAgMjEuNzkwOSAyMCAyNEMyMCAyNi4yMDkxIDIxLjc5MDkgMjggMjQgMjhaIiBmaWxsPSIjOUI5QkEwIi8+CjxwYXRoIGQ9Ik0xMiA0MEgzNkM0MC40MTgyIDQwIDQ0IDM2LjQxODIgNDQgMzJWMThDNDQgMTMuNTgxOCA0MC40MTgyIDEwIDM2IDEwSDEyQzcuNTgxNzIgMTAgNCAxMy41ODE4IDQgMThWMzJDNCAzNi40MTgyIDcuNTgxNzIgNDAgMTIgNDBaIiBzdHJva2U9IiM5QjlCQTAiIHN0cm9rZS13aWR0aD0iMiIvPgo8L3N2Zz4K'
             }}
           />
         </div>
         
-        <div className="flex justify-center space-x-1">
+        <div className="flex justify-center space-x-0.5 px-1">
           {entry.categories.slice(0, 2).map((category, index) => (
-            <span key={index} className="text-base" title={category}>
+            <span key={index} className="text-sm" title={category}>
               {getCategoryEmoji(category)}
             </span>
           ))}
